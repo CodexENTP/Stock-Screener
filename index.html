@@ -1,19 +1,22 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codex Analytics | Stock Ticker V2</title><link rel="stylesheet" href="codex.css"></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codex Analytics | Stock Screener</title><link rel="stylesheet" href="codex.css"></head><body>
 <main>
 <div class="panel"><div class="regime"><h2 style="margin:0">Market check</h2><span id="regime" class="muted">Not checked yet. It runs at the start of every scan (1 Business Quant call).</span></div></div>
-<div class="panel"><h2>Scan settings</h2><div class="grid" id="form">
-<div><label>Min price ($)</label><input id="minP" type="number" step="any"></div><div><label>Max price ($)</label><input id="maxP" type="number" step="any"></div>
-<div><label>Min avg daily volume</label><input id="minV" type="number"></div><div><label>Min beta</label><input id="minB" type="number" step="any"></div><div><label>Max beta</label><input id="maxB" type="number" step="any"></div>
-<div><label>Min market cap ($M)</label><input id="minCap" type="number"></div><div><label>Sectors (comma separated)</label><input id="sect" placeholder="Technology, Healthcare"></div><div><label>Industries (comma separated)</label><input id="ind"></div>
-<div><label>Within % of 52W low</label><input id="near" type="number"></div><div><label>Or RSI at or below</label><input id="rsiT" type="number"></div>
-<div><label>Stocks per batch</label><input id="batch" type="number"></div><div><label>4H check for top N (uses Twelve Data)</label><input id="s3" type="number"></div>
-<div><label>Start universe with</label><select id="order"><option value="mc">Largest companies</option><option value="mca">Smallest companies</option><option value="rnd">Random order</option></select></div></div>
-<p class="muted" style="margin:10px 0 0">Only NYSE and NASDAQ stocks with positive net income are scanned. Prices come from Business Quant in groups of 20 stocks per call, so 100 stocks use 5 calls. Twelve Data is used only for the 4H check on your top picks. Stop loss is -5% of entry.</p>
-<div class="row"><button class="b" id="go">Scan next batch</button><button class="b ghost" id="stop" disabled>Stop</button><button class="b ghost" id="reset">Start over (rebuild universe)</button><button class="b ghost" id="clear">Clear results</button><span id="msg" class="muted"></span></div>
+<div class="panel"><h2>Scan settings</h2><div class="grid" id="form"></div>
+<p class="muted" style="margin:10px 0 0">Only NYSE and NASDAQ stocks with positive net income are scanned. Prices are end-of-day closes from Business Quant, loaded 20 stocks per call: Quick Scan uses 3 calls, Standard 5, Deep 13 and Maximum 20. Twelve Data is used only for the 4H check on your top picks. Stop loss is -5% of entry.</p>
+<div class="row"><button class="b" id="go">Scan next batch</button><button class="b ghost" id="stop" disabled>Stop</button><button class="b ghost" id="reset">Start over (rebuild universe)</button><button class="b ghost" id="lists">Load sector and industry lists</button><button class="b ghost" id="clear">Clear results</button><span id="msg" class="muted"></span></div>
 <div class="bar" style="margin-top:12px"><i id="prog"></i></div></div>
 <div class="panel"><h2>Sort</h2><div class="grid" id="sorts"></div></div>
 <div class="row" style="margin:0 0 10px"><b id="count"></b><span class="muted" id="asof"></span></div>
 <div class="tw"><table><thead id="head"></thead><tbody id="body"></tbody></table></div>
+<details class="panel" style="margin-top:16px"><summary style="cursor:pointer;font-weight:700">How each number is calculated</summary><div class="muted" style="line-height:1.7;margin-top:10px">
+Prices, volume and the market check use end-of-day data from Business Quant, so they reflect the last completed trading day. The 4H entry check and the charts use Twelve Data and include the current session.<br>
+Net income is Business Quant's annual figure and must be positive. Sector, industry and market cap come from Business Quant.<br>
+RSI uses 14 periods (Wilder). MACD is 12/26/9. Keltner Channels are a 20-period EMA with 2 times a 10-period ATR.<br>
+Beta is calculated from about one year of daily returns against SPY. It is not a published figure, so it can differ from other sites.<br>
+Volume vs 50-day average compares the last 5 days of volume with the last 50 days. It is not the same as TradingView's time-of-day relative volume.<br>
+Volatility tiers use the standard deviation of daily moves over about 3 months: under 1% Ultra Stable, 1 to 1.8% Stable, 1.8 to 2.8% Neutral, 2.8 to 4% Volatile, above 4% Aggressive.<br>
+Typical 5-day move is that daily deviation scaled to 5 days (one standard deviation, so roughly two-thirds of 5-day moves fall inside it). It is an estimate from history, not a forecast. 3M drift is the price change over the last 63 trading days.<br>
+Candlestick patterns are rule-based checks on the most recent daily candles, so treat them as prompts to look at the chart.</div></details>
 </main>
 <dialog id="pd"><h2 id="pdT">Paper trade</h2><div class="grid"><div><label>Shares</label><input id="pdS" type="number" step="any" value="10"></div><div><label>Entry price ($)</label><input id="pdP" type="number" step="any"></div></div><p class="muted">Stop loss is set automatically at 5% below your entry price.</p><div class="row"><button class="b" id="pdOk">Start trade</button><button class="b ghost" id="pdNo">Cancel</button></div></dialog>
 <script src="core.js"></script><script src="screener.js"></script><script>if(!window.CX)document.body.insertAdjacentHTML("afterbegin","<div style=\"margin:20px;padding:16px;border:2px solid #d78585;border-radius:10px;background:#091a31;color:#f6f0e8;font-family:sans-serif\"><b>The page could not load its files.</b><br>core.js, screener.js and codex.css must sit in the same folder as index.html. Re-copy every file from the zip into one folder, then reload.</div>")</script></body></html>

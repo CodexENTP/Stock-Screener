@@ -1,4 +1,4 @@
-# Codex Analytics | Stock Ticker V2
+# Codex Analytics | Stock Screener
 
 Static site (no build step, no server). Open `index.html` or host it with GitHub Pages.
 

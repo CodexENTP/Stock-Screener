@@ -22,3 +22,5 @@ dialog{width:min(520px,92vw);background:var(--panel);color:var(--text);border:1p
 .up{color:var(--ok)}.dn{color:var(--danger)}.rep{white-space:normal;max-width:520px;color:var(--muted);font-size:12px;line-height:1.5}
 #cw{display:grid;grid-template-rows:56fr 20fr 24fr;gap:2px;height:calc(100vh - 150px)}#cw>div{min-height:0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 @media(max-width:700px){.divider,.tool{display:none}main{padding:14px}}
+
+.ms{position:relative}.ms summary{padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#06152a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.msb{position:absolute;z-index:15;background:var(--panel2);border:1px solid var(--line);border-radius:10px;max-height:280px;overflow:auto;padding:8px;min-width:230px;box-shadow:var(--shadow)}.msb label{display:flex;gap:8px;align-items:center;margin:0;padding:4px 2px;color:var(--text);cursor:pointer}.msb input{width:auto}
