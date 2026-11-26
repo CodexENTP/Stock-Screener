@@ -55,6 +55,33 @@ if(upT&&up(p)&&dn(c)&&c.o>=p.c&&c.c<=p.o)r.push(['Bearish Engulfing','bear']);
 if(upT&&up(q)&&body(q)>.5*rg(q)&&body(p)<.3*rg(p)&&dn(c)&&c.c<(q.o+q.c)/2)r.push(['Evening Star','bear']);
 if(upT&&up(p)&&dn(c)&&c.o>p.c&&c.c<(p.o+p.c)/2&&c.c>p.o)r.push(['Dark Cloud Cover','bear']);
 if(body(c)<=.1*rg(c))r.push(['Doji','neutral']);return r};
+I.cross=d=>{const n=d.length;if(n<4)return 0;if(d[n-1]>0&&(d[n-2]<=0||(n>2&&d[n-3]<=0&&d[n-2]>0)))return 2;if(d[n-1]<0&&d[n-1]>d[n-2]&&d[n-2]>d[n-3]&&d[n-1]+3*(d[n-1]-d[n-2])>=0)return 1;return 0};
+I.maCross=b=>{const c=b.map(x=>x.c),n=c.length;if(n<215)return null;const s=(i,k)=>{let t=0;for(let j=i-k+1;j<=i;j++)t+=c[j];return t/k},d=[];for(let i=n-12;i<n;i++)d.push(s(i,50)-s(i,200));
+const L=11,o={golden:null,goldenAgo:null,death:null,deathAgo:null};
+for(let k=L;k>=1;k--){if(d[L]>0&&d[k]>0&&d[k-1]<=0){o.golden='crossed';o.goldenAgo=L-k;break}}
+for(let k=L;k>=1;k--){if(d[L]<0&&d[k]<0&&d[k-1]>=0){o.death='crossed';o.deathAgo=L-k;break}}
+if(!o.golden&&d[L]<0&&I.cross(d.slice(-6))===1)o.golden='approaching';
+if(!o.death&&d[L]>0&&I.cross(d.slice(-6).map(x=>-x))===1)o.death='approaching';return o};
+I.ichi=b=>{const n=b.length;if(n<100)return null;const hh=(i,k)=>{let m=-1e18;for(let j=i-k+1;j<=i;j++)if(b[j].h>m)m=b[j].h;return m},ll=(i,k)=>{let m=1e18;for(let j=i-k+1;j<=i;j++)if(b[j].l<m)m=b[j].l;return m};
+const tk=i=>(hh(i,9)+ll(i,9))/2,kj=i=>(hh(i,26)+ll(i,26))/2,sa=i=>(tk(i)+kj(i))/2,sb=i=>(hh(i,52)+ll(i,52))/2,top=i=>Math.max(sa(i-26),sb(i-26)),i=n-1,met=[];let sc=0;
+if(b[i].c>top(i)){sc+=30;met.push('Candle closes above cloud')}
+if(tk(i)>top(i)){let rec=false;for(let j=i-9;j<i;j++)if(tk(j)<=top(j))rec=true;sc+=rec?25:12.5;met.push(rec?'Tenkan pierced above cloud':'Tenkan above cloud')}
+let bc=false;for(let j=i-4;j<=i;j++)if((tk(j)>kj(j)&&tk(j-1)<=kj(j-1))||(b[j].c>kj(j)&&b[j-1].c<=kj(j-1)))bc=true;
+if(bc){sc+=20;met.push('Base line cross')}else if(tk(i)>kj(i)){sc+=10;met.push('Tenkan above base line')}
+if(sa(i)>sb(i)){sc+=15;met.push('Future cloud bullish')}
+if(b[i].c>b[i-26].c){sc+=10;met.push('Lagging span above price')}
+return{score:Math.round(sc),met}};
+api.signal=(f,b)=>{const n=b.length,c=b.map(x=>x.c);
+if(f.strat==='os'){const r=I.rsi(c)[n-1];return r!=null&&r<=+f.osT?{ok:1,score:null,chips:['RSI '+r.toFixed(0)]}:{ok:0}}
+if(f.strat==='cross'){const mh=I.macd(c).h,rs=I.rsi(c),lv=f.rsiType==='30'?30:f.rsiType==='50'?50:null,d=[];
+for(let i=n-6;i<n;i++){if(rs[i]==null)return{ok:0};if(lv!=null)d.push(rs[i]-lv);else{let s=0;for(let k=i-8;k<=i;k++){if(rs[k]==null)return{ok:0};s+=rs[k]}d.push(rs[i]-s/9)}}
+const ms=I.cross(mh.slice(-6)),r2=I.cross(d),need=f.timing==='at'?2:1,mo=ms>=need,ro=r2>=need,L=['no cross','approaching','at crossing'],nd=f.needs,rl='RSI ('+(lv!=null?'level '+lv:'average')+') ';
+const ok=nd==='macd'?mo:nd==='rsi'?ro:nd==='both'?mo&&ro:mo||ro,chips=nd==='macd'?['MACD '+L[ms]]:nd==='rsi'?[rl+L[r2]]:['MACD '+L[ms],rl+L[r2]];
+return{ok:ok?1:0,score:nd==='macd'?ms*50:nd==='rsi'?r2*50:Math.round((ms+r2)/4*100),chips}}
+if(f.strat==='golden'){const m=I.maCross(b);if(!m)return{ok:0};const cr=m.golden==='crossed',ap=m.golden==='approaching';
+return{ok:(f.gcTiming==='at'?cr:cr||ap)?1:0,score:cr?100-m.goldenAgo*5:ap?40:0,chips:[cr?'Golden cross '+(m.goldenAgo===0?'today':m.goldenAgo+' candles ago'):ap?'Golden cross approaching':'No golden cross']}}
+if(f.strat==='ichi'){const x=I.ichi(b);if(!x)return{ok:0};return{ok:x.score>=+f.ichiMin?1:0,score:x.score,chips:x.met}}
+return{ok:0}};
 /* ---------- scoring ---------- */
 const tiers=[[1,'Ultra Stable'],[1.8,'Stable'],[2.8,'Neutral'],[4,'Volatile'],[1e9,'Aggressive']];
 api.tierRank=tiers.map(t=>t[1]);api.tierOf=s=>tiers.find(t=>s<t[0])[1];
@@ -68,13 +95,24 @@ const pats=I.pat(b),bull=pats.filter(p=>p[1]==='bull').length,bear=pats.filter(p
 const lv=I.levels(b).filter(x=>x.n>=2).map(x=>x.p),sup=lv.filter(p=>p<L.c).pop(),res=lv.find(p=>p>L.c);
 const roc3=(c[n-1]/c[n-4]-1)*100,histUp=mc.h[n-1]>mc.h[n-2],rsiUp=rsi>rs[n-3],bounce=L.c>b[n-2].c,near=sup&&(L.c/sup-1)*100<3,broke=lv.some(p=>b[n-4].c>p&&L.c<p*.99);
 const mom=.4*cl(vr/2)+.35*cl((roc3+2)/6)+.25*cl(Math.log10((v20||1)/250000));
-const osc=cl(.35*(rsiUp?1:0)+.3*(histUp?1:0)+.35*cl(bull*.7)-bear*.4);
+const ma=I.maCross(b),gcs=ma&&ma.golden==='crossed'?.2:ma&&ma.golden==='approaching'?.1:0;
+const osc=cl(.35*(rsiUp?1:0)+.3*(histUp?1:0)+.35*cl(bull*.7)-bear*.4+gcs);
 const sr=broke?.1:near?(bounce?1:.45):(res&&(res/L.c-1)*100<3?(vr>1.2?.7:.45):.5);
 const os=.6*cl((50-rsi)/25)+.4*cl(1-dist52/20),pf=ni>0?cl(.5+.5*Math.log10(ni/1e7)/2):ni==null?.5:0;
-const codex=Math.round(100*(.35*mom+.25*osc+.2*sr+.12*os+.08*pf)),flags=[];
-if(bear)flags.push('Bearish candle');if(broke)flags.push('Breaking support');if(mc.h[n-1]<0&&!histUp)flags.push('MACD weakening');if(v20<250000)flags.push('Thin volume');
+const dcs=ma&&ma.death?(ma.death==='crossed'?'crossed':'approaching'):null,pen=dcs==='crossed'?25:dcs==='approaching'?15:0;
+const codex=Math.max(0,Math.round(100*(.35*mom+.25*osc+.2*sr+.12*os+.08*pf))-pen);
+const mx=I.cross(mc.h.slice(-6)),mxb=I.cross(mc.h.slice(-6).map(x=>-x));let rx=0;{const dd=[];let okd=true;for(let i=n-6;i<n&&okd;i++){let s=0;for(let k=i-8;k<=i;k++){if(rs[k]==null){okd=false;break}s+=rs[k]}if(okd)dd.push(rs[i]-s/9)}if(okd)rx=I.cross(dd)}
+const G=[],B=[],ad=(l,nm,w)=>l.push({n:nm,w}),wp={'Morning Star':70,'Bullish Engulfing':65,'Piercing Line':55,'Hammer':50,'Evening Star':70,'Bearish Engulfing':65,'Dark Cloud Cover':55,'Shooting Star':50};
+pats.forEach(p=>{if(p[1]==='bull')ad(G,p[0],wp[p[0]]);if(p[1]==='bear')ad(B,p[0],wp[p[0]])});
+if(ma&&ma.golden==='crossed')ad(G,ma.goldenAgo<=2?'Golden cross':'Golden cross ('+ma.goldenAgo+' candles ago)',ma.goldenAgo<=2?95:75);else if(ma&&ma.golden==='approaching')ad(G,'Golden cross approaching',60);
+if(mx===2)ad(G,'MACD bullish crossover',60);else if(mx===1)ad(G,'MACD approaching crossover',40);
+if(rx===2)ad(G,'RSI bullish crossover',45);else if(rx===1)ad(G,'RSI approaching crossover',30);
+if(rsi<=30)ad(G,'RSI oversold',50);if(near&&bounce)ad(G,'Bouncing off support',55);if(vr>1.5)ad(G,'Volume surge',35);
+if(dcs==='crossed')ad(B,'Death cross ('+(ma.deathAgo===0?'today':ma.deathAgo+' candles ago')+')',100);else if(dcs==='approaching')ad(B,'Death cross approaching',80);
+if(broke)ad(B,'Breaking support',75);if(mxb===2)ad(B,'MACD bearish crossover',50);if(mc.h[n-1]<0&&!histUp)ad(B,'MACD weakening',40);if(v20<250000)ad(B,'Thin volume',45);
+G.sort((x,y)=>y.w-x.w);B.sort((x,y)=>y.w-x.w);const flags=B.map(x=>x.n);
 const low20=Math.min(...b.slice(-20).map(x=>x.l)),kl=kc.l[n-1];
-return{chg1d:(L.c/b[n-2].c-1)*100,histPos:mc.h[n-1]>0,histUp,price:L.c,asof:L.t,codex,parts:{mom,osc,sr,os,pf},rsi,dist52,low52,high52,v20,vr,sig,tier:api.tierOf(sig),exp5,drift3m,rng,beta,pats,flags,sup,res,aboveKCL:L.c>=kl,zone:[Math.min(low20,kl),Math.max(low20,kl)]}};
+return{sigs:{good:G,bad:B},death:dcs,golden:ma&&ma.golden,chg1d:(L.c/b[n-2].c-1)*100,histPos:mc.h[n-1]>0,histUp,price:L.c,asof:L.t,codex,parts:{mom,osc,sr,os,pf},rsi,dist52,low52,high52,v20,vr,sig,tier:api.tierOf(sig),exp5,drift3m,rng,beta,pats,flags,sup,res,aboveKCL:L.c>=kl,zone:[Math.min(low20,kl),Math.max(low20,kl)]}};
 api.sig4h=b=>{const k=I.kc(b),n=b.length;let pierced=false;for(let i=Math.max(0,n-6);i<n;i++)if(k.l[i]!=null&&b[i].c<k.l[i])pierced=true;return{pierced,pats:I.pat(b)}};
 api.regimeOf=b=>{const c=b.map(x=>x.c),n=c.length,e=(a,k)=>I.ema(a,k)[n-1],s=k=>avg(c.slice(-k)),mh=I.macd(c).h[n-1],rs=I.rsi(c)[n-1];
 const pts=(c[n-1]>e(c,20)?1:-1)+(c[n-1]>s(50)?1:-1)+(n>=200?(c[n-1]>s(200)?1:-1):0)+(rs>55?1:rs<45?-1:0)+(mh>0?1:-1);

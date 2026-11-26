@@ -24,3 +24,7 @@ dialog{width:min(520px,92vw);background:var(--panel);color:var(--text);border:1p
 @media(max-width:700px){.divider,.tool{display:none}main{padding:14px}}
 
 .ms{position:relative}.ms summary{padding:9px 10px;border:1px solid var(--line);border-radius:9px;background:#06152a;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.msb{position:absolute;z-index:15;background:var(--panel2);border:1px solid var(--line);border-radius:10px;max-height:280px;overflow:auto;padding:8px;min-width:230px;box-shadow:var(--shadow)}.msb label{display:flex;gap:8px;align-items:center;margin:0;padding:4px 2px;color:var(--text);cursor:pointer}.msb input{width:auto}
+
+.sortbox{display:flex;flex-direction:column;gap:10px;max-width:460px}.sortbox>div{display:grid;grid-template-columns:80px 1fr;align-items:center;gap:10px}.sortbox label{margin:0}
+
+.chip.sev{background:rgba(215,133,133,.2);font-weight:800}
