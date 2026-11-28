@@ -23,7 +23,7 @@ const k=key.td();if(!k)throw new Error('Add your Twelve Data key in Settings.');
 await slot();bump('td');let j;
 try{const r=await fetch(`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(sym)}&interval=${interval}&outputsize=${size}&order=asc&timezone=UTC&apikey=${k}`);j=await r.json()}catch(e){bump('err');throw new Error('Could not reach Twelve Data (network or browser block).')}
 if(!j||j.status==='error'||!j.values){bump('err');if(j&&j.code===429)bump('rl');throw new Error((j&&j.message)||'Twelve Data returned no data')}
-const d={meta:j.meta,bars:j.values.map(v=>({t:v.datetime,o:+v.open,h:+v.high,l:+v.low,c:+v.close,v:+(v.volume||0)})).filter(x=>x.c>0)};
+const d={meta:j.meta,bars:j.values.map(v=>({t:v.datetime,o:+v.open,h:+v.high,l:+v.low,c:+v.close,v:+(v.volume||0)})).filter(x=>x.c>0).sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0)};
 if(o.cache){pruneCache();set(ck,{ts:Date.now(),d})}return d};
 api.bq=async(path,o={})=>{const k=key.bq();if(!k)throw new Error('Add your Business Quant key in Settings.');const uu=usage();if(uu.bq>=cfg().bqLimit)throw new Error('Business Quant daily budget reached ('+uu.bq+'/'+cfg().bqLimit+'). Try again after the daily reset, or change the budget in Settings.');bump('bq');
 let r;try{r=await fetch('https://data.businessquant.com'+path+(path.includes('?')?'&':'?')+'api_key='+encodeURIComponent(k),o)}catch(e){bump('err');throw new Error('Could not reach Business Quant (network or browser block).')}
